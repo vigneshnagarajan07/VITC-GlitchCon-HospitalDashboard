@@ -4,10 +4,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import LoginPage from './pages/LoginPage'
+import LoginPage      from './pages/LoginPage'
 import AdminDashboard from './pages/AdminDashboard'
+import PatientPortal  from './pages/PatientPortal'
 
-// ── Placeholder for dashboards not built yet ─────────────────
+// ── Placeholder for dashboards not yet built ─────────────────
 function ComingSoon({ roleName, onLogout }) {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -38,15 +39,13 @@ export default function App() {
 
   const handleLogout = () => setActiveRole(null)
 
-  if (activeRole === 'admin') {
-    return <AdminDashboard onLogout={handleLogout} />
-  }
+  if (activeRole === 'admin')   return <AdminDashboard onLogout={handleLogout} />
+  if (activeRole === 'patient') return <PatientPortal  onLogout={handleLogout} />
 
   const roleLabels = {
-    doctor: 'Doctor / Nurse',
-    department_head: 'Department Head',
-    floor_supervisor: 'Floor Supervisor',
-    patient: 'Patient Portal',
+    doctor:            'Doctor / Nurse',
+    department_head:   'Department Head',
+    floor_supervisor:  'Floor Supervisor',
   }
 
   return <ComingSoon roleName={roleLabels[activeRole] || activeRole} onLogout={handleLogout} />

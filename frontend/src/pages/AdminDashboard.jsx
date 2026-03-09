@@ -153,7 +153,7 @@ function KPICard({ kpiData, cardIndex }) {
     return (
         <div
             className={`bg-white rounded-2xl border ${colorSet.border} shadow-sm hover:shadow-md transition-all overflow-hidden animate-slide-up`}
-            style={{ animationDelay: `${cardIndex * 0.07}s`, opacity: 0, animationFillMode: 'forwards' }}
+            style={{ animationDelay: `${cardIndex * 0.07}s` }}
         >
             {/* Top section */}
             <div className={`${colorSet.bg} px-4 pt-4 pb-3`}>
@@ -229,7 +229,7 @@ function AnomalyCard({ anomalyData, cardIndex }) {
     return (
         <div
             className={`rounded-2xl border ${severityStyle} p-4 animate-slide-up`}
-            style={{ animationDelay: `${cardIndex * 0.06}s`, opacity: 0, animationFillMode: 'forwards' }}
+            style={{ animationDelay: `${cardIndex * 0.06}s` }}
         >
             <div className="flex items-start gap-3">
 
@@ -286,7 +286,7 @@ function DepartmentRow({ deptData, rowIndex }) {
     return (
         <div
             className={`bg-white rounded-2xl border border-slate-100 border-l-4 ${rowStatusColor} shadow-sm p-4 flex items-center gap-4 hover:shadow-md transition-all animate-slide-up`}
-            style={{ animationDelay: `${rowIndex * 0.06}s`, opacity: 0, animationFillMode: 'forwards' }}
+            style={{ animationDelay: `${rowIndex * 0.06}s` }}
         >
 
             {/* Dept name */}
@@ -384,7 +384,7 @@ function InsightCard({ insightData, cardIndex }) {
     return (
         <div
             className={`bg-white rounded-2xl border ${priorityStyle.border} shadow-sm p-5 animate-slide-up`}
-            style={{ animationDelay: `${cardIndex * 0.07}s`, opacity: 0, animationFillMode: 'forwards' }}
+            style={{ animationDelay: `${cardIndex * 0.07}s` }}
         >
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
@@ -438,7 +438,7 @@ function RecommendationCard({ recData, cardIndex }) {
     return (
         <div
             className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-start gap-4 animate-slide-up"
-            style={{ animationDelay: `${cardIndex * 0.06}s`, opacity: 0, animationFillMode: 'forwards' }}
+            style={{ animationDelay: `${cardIndex * 0.06}s` }}
         >
             <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
