@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import LoginPage               from './pages/LoginPage'
+import AuthLoginPage           from './pages/AuthLoginPage'
 import AdminDashboard          from './pages/AdminDashboard'
 import PatientPortal           from './pages/PatientPortal'
 import DepartmentHeadDashboard from './pages/DepartmentHeadDashboard'
@@ -37,7 +37,7 @@ export default function App() {
   const [activeRole, setActiveRole] = useState(null)
 
   if (!activeRole) {
-    return <LoginPage onRoleSelected={setActiveRole} />
+    return <AuthLoginPage onAuthenticated={setActiveRole} />
   }
 
   const handleLogout = () => setActiveRole(null)
