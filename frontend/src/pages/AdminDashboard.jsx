@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Apollo Hospital | GKM_8 Intelligence Platform
+// PrimeCare Medical Hospital | GKM_8 Intelligence Platform
 // AdminDashboard.jsx — Full hospital overview for Admin / CEO
 // Sections: Health Score, KPIs, Anomalies, Departments,
 //           AI Insights, Recommendations, 48hr Forecast
@@ -557,7 +557,7 @@ export default function AdminDashboard({ onLogout }) {
                 <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center mx-auto mb-4">
                     <RefreshCw size={24} className="text-sky-500 animate-spin" />
                 </div>
-                <p className="text-slate-500 font-medium">Loading Apollo Hospital data...</p>
+                <p className="text-slate-500 font-medium">Loading PrimeCare Medical Hospital data...</p>
             </div>
         </div>
     )
@@ -615,7 +615,7 @@ export default function AdminDashboard({ onLogout }) {
                             <Activity size={16} className="text-white" />
                         </div>
                         <div>
-                            <span className="font-bold text-slate-800 text-sm">Apollo Hospital</span>
+                            <span className="font-bold text-slate-800 text-sm">PrimeCare Medical Hospital</span>
                             <span className="text-slate-400 text-sm"> · Admin Dashboard</span>
                         </div>
                     </div>

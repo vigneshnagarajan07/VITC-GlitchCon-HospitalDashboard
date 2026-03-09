@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Apollo_8 Hospital Dashboard | Team Auraman | VITC GlitchCon 2.0
+// Primecare Medical Hospital Dashboard | Team Auraman | VITC GlitchCon 2.0
 // LoginPage.jsx — Role selection screen
 // No real auth — click a role card to enter that dashboard
 // ─────────────────────────────────────────────────────────────
@@ -188,7 +188,7 @@ export default function LoginPage({ onRoleSelected }) {
                             <Activity size={16} className="text-white" />
                         </div>
                         <div>
-                            <span className="font-bold text-slate-800 text-sm">Apollo_8</span>
+                            <span className="font-bold text-slate-800 text-sm">PrimeCare</span>
                             <span className="text-slate-400 text-sm font-normal"> · Hospital Performance Dashboard</span>
                         </div>
                     </div>
@@ -210,14 +210,14 @@ export default function LoginPage({ onRoleSelected }) {
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm mb-6">
                     <Shield size={13} className="text-sky-500" />
                     <span className="text-xs font-semibold text-slate-600">
-                        Apollo General Hospital · Chennai · NABH Accredited
+                        PrimeCare Medical Hospital · Chennai · NABH Accredited
                     </span>
                 </div>
 
                 {/* Main heading */}
                 <h1 className="text-4xl font-black text-slate-800 tracking-tight mb-3">
                     Welcome to{' '}
-                    <span className="text-sky-500">Apollo</span>
+                    <span className="text-sky-500">PrimeCare</span>
                 </h1>
 
                 <p className="text-slate-500 text-lg max-w-xl mx-auto leading-relaxed">
