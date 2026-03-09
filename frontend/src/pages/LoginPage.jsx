@@ -7,7 +7,7 @@
 import { useState } from 'react'
 import {
     Stethoscope, Building2, BarChart3,
-    BedDouble, UserCircle, Activity,
+    UserCircle, Activity,
     ChevronRight, Shield
 } from 'lucide-react'
 
@@ -61,21 +61,6 @@ const AVAILABLE_ROLES = [
         capabilities: ['All KPIs', 'AI Insights', 'Revenue', '48hr Forecast'],
     },
     {
-        roleId: 'floor_supervisor',
-        roleTitle: 'Floor Supervisor',
-        roleDescription: 'Real-time bed map, admissions, discharges and housekeeping status',
-        RoleIcon: BedDouble,
-        colorScheme: {
-            card: 'hover:border-amber-300 hover:shadow-amber-100',
-            iconBox: 'bg-amber-100 text-amber-600',
-            badge: 'bg-amber-50 text-amber-600 border-amber-100',
-            button: 'bg-amber-500 hover:bg-amber-600',
-            highlight: 'text-amber-600',
-        },
-        demoUser: 'Ms. Kavitha Rajan · Floor 2 Supervisor',
-        capabilities: ['Bed Map', 'Admissions', 'Discharges', 'Staff on Duty'],
-    },
-    {
         roleId: 'patient',
         roleTitle: 'Patient Portal',
         roleDescription: 'Track your prescriptions, lab reports, vitals and discharge status',
@@ -108,11 +93,7 @@ function RoleCard({ roleData, cardIndex, onRoleSelect }) {
         hover:shadow-xl ${colorScheme.card}
         animate-slide-up
       `}
-            style={{
-                animationDelay: `${cardIndex * 0.08}s`,
-                opacity: 0,
-                animationFillMode: 'forwards',
-            }}
+            style={{ animationDelay: `${cardIndex * 0.08}s` }}
             onClick={() => onRoleSelect(roleData.roleId)}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -269,24 +250,13 @@ export default function LoginPage({ onRoleSelected }) {
                     Select Your Role
                 </p>
 
-                {/* 3 cols top row, 2 cols bottom row — centered */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
-                    {AVAILABLE_ROLES.slice(0, 3).map((roleData, cardIndex) => (
+                {/* 2×2 square grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+                    {AVAILABLE_ROLES.map((roleData, cardIndex) => (
                         <RoleCard
                             key={roleData.roleId}
                             roleData={roleData}
                             cardIndex={cardIndex}
-                            onRoleSelect={onRoleSelected}
-                        />
-                    ))}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
-                    {AVAILABLE_ROLES.slice(3).map((roleData, cardIndex) => (
-                        <RoleCard
-                            key={roleData.roleId}
-                            roleData={roleData}
-                            cardIndex={cardIndex + 3}
                             onRoleSelect={onRoleSelected}
                         />
                     ))}
