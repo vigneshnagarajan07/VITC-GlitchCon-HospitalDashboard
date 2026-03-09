@@ -7,7 +7,7 @@ __pycache__/
 venv/
 env/
 
-# ── Node / Frontend ───────────────────────────
+# ── Node / Frontend ──────────────────────────
 node_modules/
 dist/
 .vite/
