@@ -1,9 +1,15 @@
+#This is a Python dictionary which acts as a simulated hospital database 
 MOCK_HOSPITAL_DATA = {
+
+    #This is a key which contains basic hospital info
     "hospital_info": {
-        "name": "GKM General Hospital",
+        "name": "Apollo Hospital",
         "location": "Chennai, Tamil Nadu",
         "accreditation": "NABH Accredited"
     },
+
+
+    #Each department of the hospital with their individual data
     "departments": [
         {
             "id": "cardiology",
@@ -72,6 +78,8 @@ MOCK_HOSPITAL_DATA = {
             "icu": {"total": 4, "occupied": 1}
         }
     ],
+
+    #Each key here contains list of data which shows last 7 day hospital wide metric
     "trends": {
         "bed_occupancy_percent": [74, 76, 72, 78, 80, 77, 79],
         "opd_wait_min": [19, 21, 20, 24, 23, 25, 22],
@@ -81,5 +89,6 @@ MOCK_HOSPITAL_DATA = {
     }
 }
 
+#Getter function for this dataset
 def get_hospital_data():
     return MOCK_HOSPITAL_DATA
