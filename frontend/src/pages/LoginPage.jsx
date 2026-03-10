@@ -30,7 +30,7 @@ const AVAILABLE_ROLES = [
         roleId: 'department_head',
         roleTitle: 'Department Head',
         roleDescription: 'Department KPIs, staff roster, surgery schedule and anomaly alerts',
-        RoleIco n: Building2,
+        RoleIcon: Building2,
         colorScheme: {
             card: 'hover:border-violet-300 hover:shadow-violet-100',
             iconBox: 'bg-violet-100 text-violet-600',

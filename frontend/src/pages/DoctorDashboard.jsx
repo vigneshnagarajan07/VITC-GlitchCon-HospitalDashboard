@@ -290,7 +290,8 @@ export default function DoctorDashboard({ onLogout }) {
                 analyticsApi.getDepartment(DEMO_DEPT_ID),
                 insightsApi.getAnomalies(),
                 patientApi.getAll(),
-                insightsApi.getAIAgentAnalysis().catch(() => null),
+                (insightsApi.getAIAgentAnalysis ? insightsApi.getAIAgentAnalysis() : Promise.resolve(null)).catch(() => null),
+
             ])
 
             const doctor = doctorRes.data

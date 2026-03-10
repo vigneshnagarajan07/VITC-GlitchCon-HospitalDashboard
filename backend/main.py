@@ -20,10 +20,9 @@ app = FastAPI(
 
 @app.on_event("startup")
 def on_startup():
-    """
-    In-memory mode: no DB required. All data is served from simulated stores.
-    """
-    print("[Startup] PrimeCare running in in-memory simulation mode.")
+    from database.db import init_db
+    init_db()
+    print("[Startup] PrimeCare running — DB initialized.")
 
 
 # ── CORS — allow Vite frontend ────────────────────────────────

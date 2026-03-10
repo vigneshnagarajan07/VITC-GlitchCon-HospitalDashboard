@@ -12,6 +12,8 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+  
+
 // ── Analytics endpoints ───────────────────────────────────────
 export const analyticsApi = {
   getSummary: () => apiClient.get('/analytics/summary'),
@@ -26,9 +28,9 @@ export const insightsApi = {
   getAnomalies: () => apiClient.get('/insights/anomalies'),
   getAIInsights: () => apiClient.get('/insights/ai-insights'),
   getRecommendations: () => apiClient.get('/insights/recommendations'),
+  getAIAgentAnalysis: () => apiClient.get('/insights/ai-insights'),  // ← ADD THIS
 }
 
-// ── Patient endpoints ─────────────────────────────────────────
 export const patientApi = {
   getAll: () => apiClient.get('/patients/'),
   getById: (id) => apiClient.get(`/patients/${id}`),
@@ -37,6 +39,7 @@ export const patientApi = {
   getVitals: (id) => apiClient.get(`/patients/${id}/vitals`),
   getBill: (id) => apiClient.get(`/patients/${id}/bill`),
   getDischargeList: (id) => apiClient.get(`/patients/${id}/discharge-checklist`),
+  getAIReport: (id) => apiClient.get(`/patients/${id}/ai-report`),  // ← ADD THIS
 }
 
 // ── Staff endpoints ───────────────────────────────────────────
