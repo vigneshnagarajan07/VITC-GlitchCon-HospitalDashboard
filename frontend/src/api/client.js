@@ -1,87 +1,52 @@
 // ─────────────────────────────────────────────────────────────
-// PrimeCare Hospital | GKM_8 Intelligence Platform
+// PrimeCare Medical Hospital | GKM_8 Intelligence Platform
 // API Client — all endpoint definitions
-// FIX: Added bed management endpoints for Floor Supervisor
 // ─────────────────────────────────────────────────────────────
 
 import axios from 'axios'
 
+// ── Base instance ─────────────────────────────────────────────
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 })
 
 // ── Analytics endpoints ───────────────────────────────────────
 export const analyticsApi = {
-  getSummary:     () => apiClient.get('/analytics/summary'),
+  getSummary: () => apiClient.get('/analytics/summary'),
   getDepartments: () => apiClient.get('/analytics/departments'),
-  getDepartment:  (id) => apiClient.get(`/analytics/departments/${id}`),
-  getKPIs:        () => apiClient.get('/analytics/kpis'),
-  getForecast:    () => apiClient.get('/analytics/forecast'),
+  getDepartment: (id) => apiClient.get(`/analytics/departments/${id}`),
+  getKPIs: () => apiClient.get('/analytics/kpis'),
+  getForecast: () => apiClient.get('/analytics/forecast'),
 }
 
 // ── Insights endpoints ────────────────────────────────────────
 export const insightsApi = {
-  getAnomalies:        () => apiClient.get('/insights/anomalies'),
-  getAIInsights:       () => apiClient.get('/insights/ai-insights'),
-  getRecommendations:  () => apiClient.get('/insights/recommendations'),
-  getAIAgentAnalysis:  () => apiClient.get('/insights/ai-agent-analysis'),
-}
-
-// ── Dashboard endpoints ───────────────────────────────────────
-export const dashboardApi = {
-  getAdmin:         ()   => apiClient.get('/dashboard/admin'),
-  getDepartment:    (id) => apiClient.get(`/dashboard/department/${id}`),
-  getDoctor:        (id) => apiClient.get(`/dashboard/doctor/${id}`),
-  getPatient:       (id) => apiClient.get(`/dashboard/patient/${id}`),
-  submitFeedback:   (id, body) => apiClient.post(`/dashboard/patient/${id}/feedback`, body),
-  runAgent:         ()   => apiClient.get('/dashboard/run-agent'),
+  getAnomalies: () => apiClient.get('/insights/anomalies'),
+  getAIInsights: () => apiClient.get('/insights/ai-insights'),
+  getRecommendations: () => apiClient.get('/insights/recommendations'),
 }
 
 // ── Patient endpoints ─────────────────────────────────────────
 export const patientApi = {
-  getAll:               () => apiClient.get('/patients/'),
-  getById:              (id) => apiClient.get(`/patients/${id}`),
-  getPrescriptions:     (id) => apiClient.get(`/patients/${id}/prescriptions`),
-  getLabReports:        (id) => apiClient.get(`/patients/${id}/lab-reports`),
-  getVitals:            (id) => apiClient.get(`/patients/${id}/vitals`),
-  getBill:              (id) => apiClient.get(`/patients/${id}/bill`),
-  getDischargeList:     (id) => apiClient.get(`/patients/${id}/discharge-checklist`),
-  toggleDischargeTask:  (id, taskIndex) => apiClient.patch(`/patients/${id}/discharge-checklist/${taskIndex}`),
-  askAI:                (id, question) => apiClient.post(`/patients/${id}/ask`, { question }),
-  getAIReport:          (id) => apiClient.get(`/patients/${id}/ai-report`),
+  getAll: () => apiClient.get('/patients/'),
+  getById: (id) => apiClient.get(`/patients/${id}`),
+  getPrescriptions: (id) => apiClient.get(`/patients/${id}/prescriptions`),
+  getLabReports: (id) => apiClient.get(`/patients/${id}/lab-reports`),
+  getVitals: (id) => apiClient.get(`/patients/${id}/vitals`),
+  getBill: (id) => apiClient.get(`/patients/${id}/bill`),
+  getDischargeList: (id) => apiClient.get(`/patients/${id}/discharge-checklist`),
 }
 
 // ── Staff endpoints ───────────────────────────────────────────
 export const staffApi = {
-  getAll:              () => apiClient.get('/staff/'),
-  getOnDuty:           () => apiClient.get('/staff/on-duty'),
-  getDoctorsOnDuty:    () => apiClient.get('/staff/doctors-on-duty'),
-  getById:             (id) => apiClient.get(`/staff/${id}`),
-  getPatients:         (id) => apiClient.get(`/staff/${id}/patients`),
-  getByDepartment:     (id) => apiClient.get(`/staff/department/${id}`),
-  // Bed management (NEW)
-  getAllBeds:           () => apiClient.get('/staff/beds/all'),
-  getDeptBeds:         (deptId) => apiClient.get(`/staff/beds/${deptId}`),
-  updateBed:           (deptId, body) => apiClient.patch(`/staff/beds/${deptId}`, body),
-  bulkUpdateBeds:      (deptId, updates) => apiClient.post(`/staff/beds/${deptId}/bulk-update`, updates),
-}
-
-// ── Patient Management (new plugin) ──────────────────────────
-export const patientMgmtApi = {
-  getAll:        () => apiClient.get('/patients-mgmt/'),
-  getById:       (id) => apiClient.get(`/patients-mgmt/${id}`),
-  create:        (body) => apiClient.post('/patients-mgmt/', body),
-  update:        (id, body) => apiClient.put(`/patients-mgmt/${id}`, body),
-  delete:        (id) => apiClient.delete(`/patients-mgmt/${id}`),
-  updateVitals:  (body) => apiClient.put('/patients-mgmt/vitals/update', body),
-}
-
-// ── KPI plugin endpoints ──────────────────────────────────────
-export const kpiPluginApi = {
-  getWeekly: () => apiClient.get('/kpi/weekly'),
-  getToday:  () => apiClient.get('/kpi/today'),
+  getAll: () => apiClient.get('/staff/'),
+  getOnDuty: () => apiClient.get('/staff/on-duty'),
+  getDoctorsOnDuty: () => apiClient.get('/staff/doctors-on-duty'),
+  getById: (id) => apiClient.get(`/staff/${id}`),
+  getPatients: (id) => apiClient.get(`/staff/${id}/patients`),
+  getByDepartment: (id) => apiClient.get(`/staff/department/${id}`),
 }
 
 export default apiClient
