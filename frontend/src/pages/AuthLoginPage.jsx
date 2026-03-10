@@ -1,233 +1,307 @@
 // ─────────────────────────────────────────────────────────────
 // PrimeCare Hospital | GKM_8 Intelligence Platform
-// AuthLoginPage.jsx — Username / Password authentication gate
-// Light theme — inspired by dashboard UI design
+// AuthLoginPage.jsx — Redesigned authentication gateway
+// Light theme · Plus Jakarta Sans · animated stat ticker
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
 import {
     Activity, Lock, User, Eye, EyeOff,
-    Shield, AlertCircle, ChevronRight, Heart
+    Shield, AlertCircle, ChevronRight, Heart,
+    BedDouble, Clock, Users, TrendingUp, Stethoscope
 } from 'lucide-react'
 
-// ── Demo credentials ─────────────────────────────────────────
 const DEMO_CREDENTIALS = [
-    { username: 'admin',       password: 'admin123',       label: 'Admin / CEO', role: 'admin' },
-    { username: 'doctor',      password: 'doctor123',      label: 'Doctor / Nurse', role: 'doctor' },
-    { username: 'depthead',    password: 'depthead123',    label: 'Department Head', role: 'department_head' },
-    { username: 'floor',       password: 'floor123',       label: 'Floor Supervisor', role: 'floor_supervisor' },
-    { username: 'patient',     password: 'patient123',     label: 'Patient Portal', role: 'patient' },
+    { username: 'admin',    password: 'admin123',    label: 'Admin / CEO',         role: 'admin',            icon: Shield,      color: 'sky'     },
+    { username: 'doctor',   password: 'doctor123',   label: 'Doctor / Nurse',      role: 'doctor',           icon: Stethoscope, color: 'emerald' },
+    { username: 'depthead', password: 'depthead123', label: 'Department Head',      role: 'department_head',  icon: TrendingUp,  color: 'violet'  },
+    { username: 'floor',    password: 'floor123',    label: 'Floor Supervisor',     role: 'floor_supervisor', icon: BedDouble,   color: 'amber'   },
+    { username: 'patient',  password: 'patient123',  label: 'Patient Portal',       role: 'patient',          icon: Heart,       color: 'rose'    },
 ]
 
+const LIVE_STATS = [
+    { icon: BedDouble, label: 'Beds Occupied', value: '319/395', color: 'text-sky-600' },
+    { icon: Clock,     label: 'Avg Wait Time', value: '22 min',  color: 'text-amber-600' },
+    { icon: Users,     label: 'Patients Today', value: '284',    color: 'text-emerald-600' },
+    { icon: Activity,  label: 'Health Score',   value: '82/100', color: 'text-violet-600' },
+    { icon: Heart,     label: 'Surgeries Done', value: '14',     color: 'text-rose-500' },
+    { icon: TrendingUp,label: 'NPS Score',      value: '72 pts', color: 'text-sky-600' },
+]
+
+const COLOR_MAP = {
+    sky:     { bg: 'bg-sky-50',     border: 'border-sky-200',     text: 'text-sky-700',     icon: 'text-sky-600'    },
+    emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', icon: 'text-emerald-600'},
+    violet:  { bg: 'bg-violet-50',  border: 'border-violet-200',  text: 'text-violet-700',  icon: 'text-violet-600' },
+    amber:   { bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-700',   icon: 'text-amber-600'  },
+    rose:    { bg: 'bg-rose-50',    border: 'border-rose-200',    text: 'text-rose-700',    icon: 'text-rose-500'   },
+}
+
 export default function AuthLoginPage({ onAuthenticated }) {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [showPassword, setShowPassword] = useState(false)
-    const [error, setError] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const [showCredentials, setShowCredentials] = useState(false)
+    const [username, setUsername]           = useState('')
+    const [password, setPassword]           = useState('')
+    const [showPassword, setShowPassword]   = useState(false)
+    const [error, setError]                 = useState('')
+    const [isLoading, setIsLoading]         = useState(false)
+    const [showCreds, setShowCreds]         = useState(false)
+    const [hoveredCred, setHoveredCred]     = useState(null)
 
     const handleLogin = async (e) => {
         e.preventDefault()
         setError('')
-
         if (!username.trim() || !password.trim()) {
             setError('Please enter both username and password.')
             return
         }
-
         setIsLoading(true)
-        await new Promise(r => setTimeout(r, 600))
-
+        await new Promise(r => setTimeout(r, 700))
         const match = DEMO_CREDENTIALS.find(
             c => c.username === username.trim().toLowerCase() && c.password === password
         )
-
         if (match) {
             onAuthenticated(match.role)
         } else {
-            setError('Invalid credentials. Please check username and password.')
+            setError('Invalid credentials. Try a demo account below.')
         }
-
         setIsLoading(false)
     }
 
-    const currentTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-    const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    const now = new Date()
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/30 to-slate-100 flex flex-col">
+        <div className="min-h-screen bg-slate-50 flex flex-col overflow-hidden">
 
-            {/* ── Top bar ── */}
-            <div className="border-b border-slate-200/60 bg-white/70 backdrop-blur-sm">
-                <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shadow-sm">
-                            <Activity size={16} className="text-white" />
-                        </div>
-                        <div>
-                            <span className="font-bold text-slate-800 text-sm">PrimeCare</span>
-                            <span className="text-slate-400 text-sm font-normal"> · Hospital Performance Dashboard</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                        <span>{currentDate} · {currentTime}</span>
-                    </div>
+            {/* ── Live stat ticker ── */}
+            <div className="bg-sky-600 py-1.5 overflow-hidden">
+                <div className="ticker-inner gap-10 px-4">
+                    {[...LIVE_STATS, ...LIVE_STATS].map((stat, i) => {
+                        const Icon = stat.icon
+                        return (
+                            <span key={i} className="inline-flex items-center gap-2 text-white/90 text-[11px] font-semibold mx-6">
+                                <Icon size={11} className="text-white/70" />
+                                <span className="text-white/60">{stat.label}:</span>
+                                <span className="text-white font-bold">{stat.value}</span>
+                            </span>
+                        )
+                    })}
                 </div>
             </div>
 
-            {/* ── Main content ── */}
-            <div className="flex-1 flex items-center justify-center px-6 py-12">
-                <div className="w-full max-w-md">
-
-                    {/* ── Header ── */}
-                    <div className="text-center mb-8 animate-slide-up">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm mb-6">
-                            <Shield size={13} className="text-sky-500" />
-                            <span className="text-xs font-semibold text-slate-600">Secure Authentication Portal</span>
+            {/* ── Navbar ── */}
+            <header className="bg-white border-b border-slate-200 shadow-sm">
+                <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center shadow-sm shadow-sky-200">
+                            <Activity size={17} className="text-white" />
                         </div>
-                        <h1 className="text-4xl font-black text-slate-800 tracking-tight mb-3">
-                            Welcome to <span className="text-sky-500">PrimeCare</span>
-                        </h1>
-                        <p className="text-slate-500 text-lg leading-relaxed">
-                            Sign in to access the hospital intelligence platform
+                        <div>
+                            <span className="font-extrabold text-slate-800 text-sm tracking-tight">PrimeCare</span>
+                            <span className="text-slate-400 text-sm font-normal"> · Hospital Intelligence Platform</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                        <span className="text-slate-500 font-medium">{dateStr}</span>
+                        <span className="text-slate-300">·</span>
+                        <span className="text-slate-700 font-bold tabular-nums">{timeStr}</span>
+                    </div>
+                </div>
+            </header>
+
+            {/* ── Hero content ── */}
+            <div className="flex-1 flex items-center justify-center px-6 py-12">
+                <div className="w-full max-w-5xl flex items-center gap-16">
+
+                    {/* ── Left column: branding + stats ── */}
+                    <div className="flex-1 hidden lg:block">
+                        <div className="animate-slide-up">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 mb-6">
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                                <span className="text-xs font-bold text-sky-700">GKM_8 · VITC GlitchCon 2.0</span>
+                            </div>
+                            <h1 className="text-5xl font-black text-slate-800 leading-tight mb-4">
+                                Hospital<br/>
+                                <span className="text-sky-500">Intelligence</span><br/>
+                                Platform
+                            </h1>
+                            <p className="text-slate-500 text-lg leading-relaxed mb-8 max-w-sm">
+                                Real-time KPI monitoring, anomaly detection, and AI-powered insights for PrimeCare Medical Hospital.
+                            </p>
+                        </div>
+
+                        {/* Live stat tiles */}
+                        <div className="grid grid-cols-2 gap-3 animate-slide-up stagger-2">
+                            {LIVE_STATS.map((stat, i) => {
+                                const Icon = stat.icon
+                                return (
+                                    <div
+                                        key={i}
+                                        className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3 stat-card shadow-sm"
+                                        style={{ animationDelay: `${i * 0.06}s` }}
+                                    >
+                                        <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                                            <Icon size={16} className={stat.color} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{stat.label}</p>
+                                            <p className={`text-base font-extrabold tabular-nums ${stat.color}`}>{stat.value}</p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* ── Right column: login form ── */}
+                    <div className="w-full max-w-md shrink-0">
+
+                        {/* Secure badge */}
+                        <div className="flex justify-center mb-5 animate-slide-up">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm">
+                                <Shield size={12} className="text-sky-500" />
+                                <span className="text-xs font-semibold text-slate-600">Secure Authentication Portal</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            </div>
+                        </div>
+
+                        {/* Card */}
+                        <div
+                            className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xl shadow-slate-200/60 animate-slide-up"
+                            style={{ animationDelay: '0.08s' }}
+                        >
+                            <div className="mb-6">
+                                <h2 className="text-2xl font-extrabold text-slate-800 mb-1">Welcome back</h2>
+                                <p className="text-sm text-slate-400">Sign in to your dashboard</p>
+                            </div>
+
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                {/* Username */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                        Username
+                                    </label>
+                                    <div className="relative">
+                                        <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input
+                                            type="text"
+                                            value={username}
+                                            onChange={e => { setUsername(e.target.value); setError('') }}
+                                            placeholder="Enter username"
+                                            autoComplete="username"
+                                            className="input-field w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-sm font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Password */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                                        Password
+                                    </label>
+                                    <div className="relative">
+                                        <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={password}
+                                            onChange={e => { setPassword(e.target.value); setError('') }}
+                                            placeholder="Enter password"
+                                            autoComplete="current-password"
+                                            className="input-field w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 text-sm font-medium"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Error */}
+                                {error && (
+                                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 animate-slide-up">
+                                        <AlertCircle size={14} className="text-red-500 shrink-0" />
+                                        <p className="text-xs text-red-600 font-semibold">{error}</p>
+                                    </div>
+                                )}
+
+                                {/* Submit */}
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="btn-primary w-full py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-sky-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Authenticating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Sign In to Dashboard
+                                            <ChevronRight size={16} />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            {/* Demo credentials */}
+                            <div className="mt-5 pt-5 border-t border-slate-100">
+                                <button
+                                    onClick={() => setShowCreds(!showCreds)}
+                                    className="w-full flex items-center justify-between text-xs text-slate-400 hover:text-slate-600 transition-colors mb-2"
+                                >
+                                    <span className="font-bold uppercase tracking-wide">Demo Credentials</span>
+                                    <ChevronRight size={13} className={`transition-transform duration-200 ${showCreds ? 'rotate-90' : ''}`} />
+                                </button>
+
+                                {showCreds && (
+                                    <div className="space-y-1.5 animate-slide-up">
+                                        {DEMO_CREDENTIALS.map((cred) => {
+                                            const Icon = cred.icon
+                                            const c = COLOR_MAP[cred.color]
+                                            return (
+                                                <button
+                                                    key={cred.username}
+                                                    type="button"
+                                                    onClick={() => { setUsername(cred.username); setPassword(cred.password); setError('') }}
+                                                    onMouseEnter={() => setHoveredCred(cred.username)}
+                                                    onMouseLeave={() => setHoveredCred(null)}
+                                                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl border transition-all ${hoveredCred === cred.username ? `${c.bg} ${c.border}` : 'bg-slate-50 border-slate-100'}`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${hoveredCred === cred.username ? c.bg : 'bg-white border border-slate-200'}`}>
+                                                            <Icon size={13} className={hoveredCred === cred.username ? c.icon : 'text-slate-400'} />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <p className={`text-xs font-bold transition-colors ${hoveredCred === cred.username ? c.text : 'text-slate-700'}`}>{cred.label}</p>
+                                                            <p className="text-[10px] text-slate-400">{cred.username} · {cred.password}</p>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronRight size={11} className={`transition-colors ${hoveredCred === cred.username ? c.icon : 'text-slate-300'}`} />
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <p className="text-center text-[11px] text-slate-400 mt-5 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                            PrimeCare Medical Hospital · NABH Accredited · Chennai, Tamil Nadu
                         </p>
                     </div>
-
-                    {/* ── Login card ── */}
-                    <div className="bg-white rounded-2xl border-2 border-slate-100 p-8 shadow-xl shadow-slate-200/50 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                        <form onSubmit={handleLogin} className="space-y-5">
-
-                            {/* Username */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                                    Username
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                                        <User size={16} />
-                                    </div>
-                                    <input
-                                        id="auth-username"
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => { setUsername(e.target.value); setError('') }}
-                                        placeholder="Enter your username"
-                                        autoComplete="username"
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100 transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Password */}
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                                    Password
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                                        <Lock size={16} />
-                                    </div>
-                                    <input
-                                        id="auth-password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={password}
-                                        onChange={(e) => { setPassword(e.target.value); setError('') }}
-                                        placeholder="Enter your password"
-                                        autoComplete="current-password"
-                                        className="w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100 transition-all"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                                    >
-                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Error message */}
-                            {error && (
-                                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
-                                    <AlertCircle size={14} className="text-red-500 shrink-0" />
-                                    <p className="text-xs text-red-600 font-medium">{error}</p>
-                                </div>
-                            )}
-
-                            {/* Login button */}
-                            <button
-                                id="auth-login-btn"
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-sky-200 hover:shadow-lg hover:shadow-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Authenticating...
-                                    </>
-                                ) : (
-                                    <>
-                                        Sign In
-                                        <ChevronRight size={16} />
-                                    </>
-                                )}
-                            </button>
-                        </form>
-
-                        {/* ── Demo credentials toggle ── */}
-                        <div className="mt-6 pt-5 border-t border-slate-100">
-                            <button
-                                onClick={() => setShowCredentials(!showCredentials)}
-                                className="w-full flex items-center justify-between text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                                <span className="font-semibold">Demo Credentials</span>
-                                <ChevronRight size={14} className={`transition-transform ${showCredentials ? 'rotate-90' : ''}`} />
-                            </button>
-
-                            {showCredentials && (
-                                <div className="mt-3 space-y-2 animate-slide-up">
-                                    {DEMO_CREDENTIALS.map((cred) => (
-                                        <button
-                                            key={cred.username}
-                                            type="button"
-                                            onClick={() => {
-                                                setUsername(cred.username)
-                                                setPassword(cred.password)
-                                                setError('')
-                                            }}
-                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-sky-50 hover:border-sky-200 transition-all group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-7 h-7 rounded-lg bg-sky-100 flex items-center justify-center">
-                                                    <User size={12} className="text-sky-600" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="text-xs font-semibold text-slate-700">{cred.label}</p>
-                                                    <p className="text-[10px] text-slate-400">{cred.username} / {cred.password}</p>
-                                                </div>
-                                            </div>
-                                            <ChevronRight size={12} className="text-slate-300 group-hover:text-sky-500 transition-colors" />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* ── Bottom note ── */}
-                    <p className="text-center text-[11px] text-slate-400 mt-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                        PrimeCare Medical Hospital · NABH Accredited · Chennai
-                    </p>
                 </div>
             </div>
 
             {/* ── Footer ── */}
-            <div className="border-t border-slate-200 bg-white/50 py-4">
-                <p className="text-center text-xs text-slate-400">PrimeCare Hospitals · GKM_8 Intelligence Platform · VITC GlitchCon 2.0</p>
-            </div>
+            <footer className="border-t border-slate-200 bg-white py-3.5">
+                <p className="text-center text-[11px] text-slate-400">
+                    PrimeCare Hospitals · GKM_8 Intelligence Platform · VITC GlitchCon 2.0
+                </p>
+            </footer>
         </div>
     )
 }

@@ -65,4 +65,20 @@ export const staffApi = {
   bulkUpdateBeds:      (deptId, updates) => apiClient.post(`/staff/beds/${deptId}/bulk-update`, updates),
 }
 
+// ── Patient Management (new plugin) ──────────────────────────
+export const patientMgmtApi = {
+  getAll:        () => apiClient.get('/patients-mgmt/'),
+  getById:       (id) => apiClient.get(`/patients-mgmt/${id}`),
+  create:        (body) => apiClient.post('/patients-mgmt/', body),
+  update:        (id, body) => apiClient.put(`/patients-mgmt/${id}`, body),
+  delete:        (id) => apiClient.delete(`/patients-mgmt/${id}`),
+  updateVitals:  (body) => apiClient.put('/patients-mgmt/vitals/update', body),
+}
+
+// ── KPI plugin endpoints ──────────────────────────────────────
+export const kpiPluginApi = {
+  getWeekly: () => apiClient.get('/kpi/weekly'),
+  getToday:  () => apiClient.get('/kpi/today'),
+}
+
 export default apiClient

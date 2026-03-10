@@ -7,6 +7,9 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ── Database URL ──────────────────────────────────────────────
 # SQLite for local dev — no extra setup required.
@@ -91,11 +94,14 @@ def _seed_mock_data():
         # ── Users (admin + dept heads) ───────────────────────
         users = [
             User(id="USR_ADM001", name="Arvind Kumar",       email="admin@primecare.in",
-                 role="admin",          department_id="administration"),
+                 role="admin",          department_id="administration",
+                 username="admin",      password_hash=pwd_context.hash("admin123")),
             User(id="USR_DOC001", name="Dr. Ramesh Iyer",    email="ramesh@primecare.in",
-                 role="department_head",department_id="cardiology"),
+                 role="department_head",department_id="cardiology",
+                 username="doctor",     password_hash=pwd_context.hash("doctor123")),
             User(id="USR_DOC002", name="Dr. Priya Subramaniam", email="priya@primecare.in",
-                 role="department_head",department_id="general_medicine"),
+                 role="department_head",department_id="general_medicine",
+                 username="depthead",   password_hash=pwd_context.hash("depthead123")),
             User(id="USR_DOC003", name="Dr. Karthik Menon",  email="karthik@primecare.in",
                  role="department_head",department_id="orthopedics"),
             User(id="USR_DOC004", name="Dr. Anitha Krishnan",email="anitha@primecare.in",
@@ -103,9 +109,11 @@ def _seed_mock_data():
             User(id="USR_DOC005", name="Dr. Vijay Nair",     email="vijay@primecare.in",
                  role="department_head",department_id="emergency"),
             User(id="USR_DOC006", name="Dr. Meena Rajagopalan", email="meena@primecare.in",
-                 role="department_head",department_id="obstetrics"),
+                 role="department_head",department_id="obstetrics",
+                 username="floor",      password_hash=pwd_context.hash("floor123")), # repurposing obstetrics for demo
             User(id="USR_PAT001", name="Senthil Kumar",      email="senthil@example.com",
-                 role="patient",        department_id="cardiology"),
+                 role="patient",        department_id="cardiology",
+                 username="patient",    password_hash=pwd_context.hash("patient123")),
             User(id="USR_PAT002", name="Lakshmi Devi",       email="lakshmi@example.com",
                  role="patient",        department_id="obstetrics"),
             User(id="USR_PAT003", name="Arjun Sharma",       email="arjun@example.com",
