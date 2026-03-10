@@ -20,6 +20,21 @@ DAY_LOAD_MULTIPLIER = {
 }
 
 
+def _round(value: float, ndigits: int = 1) -> float:
+    """Round helper using integer arithmetic — bypasses Pyre2's broken round() stub."""
+    factor: float = 10.0 ** ndigits
+    return float(int(value * factor + 0.5)) / factor
+
+
+def _clamp(value: float, lo: float, hi: float) -> float:
+    """Clamp a float value between lo and hi."""
+    if value < lo:
+        return lo
+    if value > hi:
+        return hi
+    return value
+
+
 def compute_trend_slope(values: list) -> float:
     """
     Simple linear trend slope from last 7 days
@@ -114,14 +129,14 @@ def generate_48hr_forecast(departments: list, trend_data: dict) -> dict:
             "hours_ahead"       : hours_ahead,
             "forecast_time"     : forecast_time.strftime("%d %b %H:%M"),
             "bed_occupancy"     : projected_bed,
-            "bed_upper"         : round(min(projected_bed + confidence_margin, 100), 1),
-            "bed_lower"         : round(max(projected_bed - confidence_margin, 0), 1),
+            "bed_upper"         : _round(_clamp(float(projected_bed) + confidence_margin, 0.0, 100.0)),
+            "bed_lower"         : _round(_clamp(float(projected_bed) - confidence_margin, 0.0, 100.0)),
             "opd_patients"      : projected_patients,
             "patients_upper"    : projected_patients + int(confidence_margin * 10),
             "patients_lower"    : max(projected_patients - int(confidence_margin * 10), 0),
             "opd_wait_min"      : projected_wait,
-            "wait_upper"        : round(projected_wait + confidence_margin, 1),
-            "wait_lower"        : round(max(projected_wait - confidence_margin, 0), 1),
+            "wait_upper"        : _round(float(projected_wait) + confidence_margin),
+            "wait_lower"        : _round(_clamp(float(projected_wait) - confidence_margin, 0.0, 99999.0)),
             "load_level"        : "high" if combined_multiplier > 1.05 else "normal" if combined_multiplier > 0.9 else "low",
             "alerts"            : forecast_alerts,
         })

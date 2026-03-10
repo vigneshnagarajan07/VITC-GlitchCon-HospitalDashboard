@@ -10,6 +10,7 @@ from data.repository import (
     fetch_patient_by_id,
     fetch_patients_by_department,
 )
+from data.patient_data import APOLLO_PATIENTS
 from services.ai_service import answer_patient_question
 from datetime import datetime
 
@@ -123,3 +124,45 @@ def ask_patient_ai(patient_id: str, body: PatientQuestion):
         "source"      : result["source"],
         "timestamp"   : datetime.now().isoformat(),
     }
+
+
+@router.patch("/{patient_id}/discharge-checklist/{task_index}")
+def toggle_discharge_task(patient_id: str, task_index: int):
+    """
+    Toggle the completed status of a discharge checklist item.
+    Mutates in-memory APOLLO_PATIENTS list so it persists for the session.
+    """
+    # Find in APOLLO_PATIENTS for in-memory update
+    patient_record = None
+    for p in APOLLO_PATIENTS:
+        if p["patient_id"] == patient_id:
+            patient_record = p
+            break
+
+    if not patient_record:
+        raise HTTPException(status_code=404, detail=f"Patient '{patient_id}' not found")
+
+    checklist = patient_record.get("discharge_checklist", [])
+    if task_index < 0 or task_index >= len(checklist):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Task index {task_index} out of range (0-{len(checklist)-1})"
+        )
+
+    # Toggle the completed field
+    checklist[task_index]["completed"] = not checklist[task_index]["completed"]
+
+    tasks_done  = sum(1 for t in checklist if t["completed"])
+    total_tasks = len(checklist)
+
+    return {
+        "patient_id"         : patient_id,
+        "task_index"         : task_index,
+        "task"               : checklist[task_index]["task"],
+        "completed"          : checklist[task_index]["completed"],
+        "tasks_completed"    : tasks_done,
+        "tasks_total"        : total_tasks,
+        "completion_percent" : round((tasks_done / total_tasks) * 100),
+        "ready_for_discharge": tasks_done == total_tasks,
+        "timestamp"          : datetime.now().isoformat(),
+    }

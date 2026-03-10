@@ -4,9 +4,12 @@
 # ─────────────────────────────────────────────────────────────
 
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed or IDE cache stale; OS default fallbacks apply
 
-load_dotenv()
 
 # ── App settings ──────────────────────────────────────────────
 APP_TITLE       = "PrimeCare Hospital — GKM_8 Intelligence Platform"

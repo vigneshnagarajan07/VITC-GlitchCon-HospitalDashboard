@@ -1,36 +1,98 @@
 # ─────────────────────────────────────────────────────────────
 # PrimeCare Hospital | GKM_8 Intelligence Platform
 # api/routers/patients_mgmt.py — Admin patient management CRUD
-# Prefix: /api/patients-mgmt
+# Fully in-memory (no DB) — uses simulated list store
 # ─────────────────────────────────────────────────────────────
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-from database.db import get_db
-from database.models import PatientMgmt, PatientVitals
-
 router = APIRouter()
+
+# ── In-memory simulated patient store ────────────────────────
+# These are pre-seeded simulated patients with adapted data.
+# All CRUD (add, edit, delete, vitals) mutates this list only.
+
+_PATIENTS: list = [
+    {
+        "id": 1, "name": "Senthil Kumar",    "age": 54, "gender": "Male",
+        "department": "Cardiology",       "assigned_doctor": "Dr. Ramesh Iyer",
+        "diagnosis": "Coronary Artery Disease", "contact": "9876543210",
+        "admission_status": "icu",        "created_at": "2024-11-01T08:30:00",
+        "vitals": {"heart_rate": 92, "blood_pressure": "145/90", "temperature": 37.4,
+                   "oxygen_saturation": 94, "respiration_rate": 18,
+                   "notes": "Monitor SpO2 — pending echo"},
+    },
+    {
+        "id": 2, "name": "Meena Devi",        "age": 36, "gender": "Female",
+        "department": "Obstetrics",       "assigned_doctor": "Dr. Meena Rajagopalan",
+        "diagnosis": "Gestational Hypertension", "contact": "9123456789",
+        "admission_status": "admitted",   "created_at": "2024-11-03T10:00:00",
+        "vitals": {"heart_rate": 84, "blood_pressure": "138/88", "temperature": 37.1,
+                   "oxygen_saturation": 97, "respiration_rate": 16,
+                   "notes": "BP stable on medication"},
+    },
+    {
+        "id": 3, "name": "Arjun Sharma",      "age": 29, "gender": "Male",
+        "department": "Orthopedics",      "assigned_doctor": "Dr. Karthik Menon",
+        "diagnosis": "ACL Tear — Post-op", "contact": "9000112233",
+        "admission_status": "admitted",   "created_at": "2024-11-05T09:15:00",
+        "vitals": {"heart_rate": 72, "blood_pressure": "118/76", "temperature": 36.9,
+                   "oxygen_saturation": 99, "respiration_rate": 14,
+                   "notes": "Post-op day 2 — mobilising"},
+    },
+    {
+        "id": 4, "name": "Kavitha Rajan",     "age": 61, "gender": "Female",
+        "department": "General Medicine", "assigned_doctor": "Dr. Priya Subramaniam",
+        "diagnosis": "Type 2 Diabetes + Hypertension", "contact": "9111222333",
+        "admission_status": "admitted",   "created_at": "2024-11-06T11:00:00",
+        "vitals": None,
+    },
+    {
+        "id": 5, "name": "Venkatesh Pillai",  "age": 72, "gender": "Male",
+        "department": "Neurology",        "assigned_doctor": "Dr. Anitha Krishnan",
+        "diagnosis": "Ischemic Stroke",   "contact": "9444555666",
+        "admission_status": "icu",        "created_at": "2024-11-07T06:45:00",
+        "vitals": {"heart_rate": 78, "blood_pressure": "130/82", "temperature": 37.2,
+                   "oxygen_saturation": 96, "respiration_rate": 17,
+                   "notes": "GCS 14/15 — improving"},
+    },
+    {
+        "id": 6, "name": "Priya Nair",        "age": 22, "gender": "Female",
+        "department": "Emergency",        "assigned_doctor": "Dr. Vijay Nair",
+        "diagnosis": "Acute Appendicitis", "contact": "9777888999",
+        "admission_status": "admitted",   "created_at": "2024-11-08T04:30:00",
+        "vitals": None,
+    },
+]
+
+_next_id: int = 7  # auto-increment counter
 
 
 # ── Pydantic schemas ──────────────────────────────────────────
 
 class PatientCreate(BaseModel):
     name:             str
-    age:              Optional[int]       = None
-    gender:           Optional[str]       = None
-    department:       Optional[str]       = None
-    assigned_doctor:  Optional[str]       = None
-    diagnosis:        Optional[str]       = None
-    contact:          Optional[str]       = None
-    admission_status: Optional[str]       = "admitted"
+    age:              Optional[int]   = None
+    gender:           Optional[str]   = None
+    department:       Optional[str]   = None
+    assigned_doctor:  Optional[str]   = None
+    diagnosis:        Optional[str]   = None
+    contact:          Optional[str]   = None
+    admission_status: Optional[str]   = "admitted"
 
 
-class PatientUpdate(PatientCreate):
-    name: Optional[str] = None
+class PatientUpdate(BaseModel):
+    name:             Optional[str]   = None
+    age:              Optional[int]   = None
+    gender:           Optional[str]   = None
+    department:       Optional[str]   = None
+    assigned_doctor:  Optional[str]   = None
+    diagnosis:        Optional[str]   = None
+    contact:          Optional[str]   = None
+    admission_status: Optional[str]   = None
 
 
 class VitalsUpdate(BaseModel):
@@ -43,102 +105,60 @@ class VitalsUpdate(BaseModel):
     notes:             Optional[str]   = None
 
 
-# ── Helper ────────────────────────────────────────────────────
-
-def _patient_to_dict(p: PatientMgmt) -> dict:
-    latest_vitals = p.vitals[-1] if p.vitals else None
-    return {
-        "id":               p.id,
-        "name":             p.name,
-        "age":              p.age,
-        "gender":           p.gender,
-        "department":       p.department,
-        "assigned_doctor":  p.assigned_doctor,
-        "diagnosis":        p.diagnosis,
-        "contact":          p.contact,
-        "admission_status": p.admission_status,
-        "created_at":       p.created_at.isoformat() if p.created_at else None,
-        "vitals":           _vitals_to_dict(latest_vitals) if latest_vitals else None,
-    }
-
-
-def _vitals_to_dict(v: PatientVitals) -> dict:
-    return {
-        "id":                v.id,
-        "heart_rate":        v.heart_rate,
-        "blood_pressure":    v.blood_pressure,
-        "temperature":       v.temperature,
-        "oxygen_saturation": v.oxygen_saturation,
-        "respiration_rate":  v.respiration_rate,
-        "notes":             v.notes,
-        "updated_at":        v.updated_at.isoformat() if v.updated_at else None,
-    }
-
-
 # ── Routes ────────────────────────────────────────────────────
 
 @router.get("/")
-def list_patients(db: Session = Depends(get_db)):
-    patients = db.query(PatientMgmt).order_by(PatientMgmt.id.desc()).all()
-    return {"patients": [_patient_to_dict(p) for p in patients], "total": len(patients)}
+def list_patients():
+    return {"patients": list(reversed(_PATIENTS)), "total": len(_PATIENTS)}
 
 
 @router.get("/{patient_id}")
-def get_patient(patient_id: int, db: Session = Depends(get_db)):
-    p = db.query(PatientMgmt).filter(PatientMgmt.id == patient_id).first()
+def get_patient(patient_id: int):
+    p = next((x for x in _PATIENTS if x["id"] == patient_id), None)
     if not p:
         raise HTTPException(status_code=404, detail="Patient not found")
-    return _patient_to_dict(p)
+    return p
 
 
 @router.post("/")
-def create_patient(body: PatientCreate, db: Session = Depends(get_db)):
-    p = PatientMgmt(**body.dict())
-    db.add(p)
-    db.commit()
-    db.refresh(p)
-    return {"message": "Patient created", "patient": _patient_to_dict(p)}
+def create_patient(body: PatientCreate):
+    global _next_id
+    new_patient: dict = body.dict()
+    new_patient["id"]         = _next_id
+    new_patient["created_at"] = datetime.now().isoformat()
+    new_patient["vitals"]     = None
+    _PATIENTS.append(new_patient)
+    _next_id += 1
+    return {"message": "Patient created", "patient": new_patient}
 
 
 @router.put("/{patient_id}")
-def update_patient(patient_id: int, body: PatientUpdate, db: Session = Depends(get_db)):
-    p = db.query(PatientMgmt).filter(PatientMgmt.id == patient_id).first()
+def update_patient(patient_id: int, body: PatientUpdate):
+    p = next((x for x in _PATIENTS if x["id"] == patient_id), None)
     if not p:
         raise HTTPException(status_code=404, detail="Patient not found")
     for field, value in body.dict(exclude_none=True).items():
-        setattr(p, field, value)
-    db.commit()
-    db.refresh(p)
-    return {"message": "Patient updated", "patient": _patient_to_dict(p)}
+        p[field] = value
+    return {"message": "Patient updated", "patient": p}
 
 
 @router.delete("/{patient_id}")
-def delete_patient(patient_id: int, db: Session = Depends(get_db)):
-    p = db.query(PatientMgmt).filter(PatientMgmt.id == patient_id).first()
-    if not p:
+def delete_patient(patient_id: int):
+    idx = next((i for i, x in enumerate(_PATIENTS) if x["id"] == patient_id), None)
+    if idx is None:
         raise HTTPException(status_code=404, detail="Patient not found")
-    db.delete(p)
-    db.commit()
+    _PATIENTS.pop(idx)
     return {"message": "Patient deleted"}
 
 
 @router.put("/vitals/update")
-def update_vitals(body: VitalsUpdate, db: Session = Depends(get_db)):
-    p = db.query(PatientMgmt).filter(PatientMgmt.id == body.patient_id).first()
+def update_vitals(body: VitalsUpdate):
+    p = next((x for x in _PATIENTS if x["id"] == body.patient_id), None)
     if not p:
         raise HTTPException(status_code=404, detail="Patient not found")
-    # Upsert latest vitals record
-    existing = db.query(PatientVitals)\
-                 .filter(PatientVitals.patient_id == body.patient_id)\
-                 .order_by(PatientVitals.id.desc()).first()
-    if existing:
-        for field, value in body.dict(exclude={"patient_id"}, exclude_none=True).items():
-            setattr(existing, field, value)
-        existing.updated_at = datetime.utcnow()
-    else:
-        data = body.dict(exclude_none=True)
-        existing = PatientVitals(**data)
-        db.add(existing)
-    db.commit()
-    db.refresh(existing)
-    return {"message": "Vitals updated", "vitals": _vitals_to_dict(existing)}
+    existing = p.get("vitals") or {}
+    data = body.dict(exclude={"patient_id"}, exclude_none=True)
+    existing.update(data)
+    existing["updated_at"] = datetime.now().isoformat()
+    p["vitals"] = existing
+    return {"message": "Vitals updated", "vitals": existing}

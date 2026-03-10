@@ -40,14 +40,15 @@ export const dashboardApi = {
 
 // ── Patient endpoints ─────────────────────────────────────────
 export const patientApi = {
-  getAll:            () => apiClient.get('/patients/'),
-  getById:           (id) => apiClient.get(`/patients/${id}`),
-  getPrescriptions:  (id) => apiClient.get(`/patients/${id}/prescriptions`),
-  getLabReports:     (id) => apiClient.get(`/patients/${id}/lab-reports`),
-  getVitals:         (id) => apiClient.get(`/patients/${id}/vitals`),
-  getBill:           (id) => apiClient.get(`/patients/${id}/bill`),
-  getDischargeList:  (id) => apiClient.get(`/patients/${id}/discharge-checklist`),
-  askAI:             (id, question) => apiClient.post(`/patients/${id}/ask`, { question }),
+  getAll:               () => apiClient.get('/patients/'),
+  getById:              (id) => apiClient.get(`/patients/${id}`),
+  getPrescriptions:     (id) => apiClient.get(`/patients/${id}/prescriptions`),
+  getLabReports:        (id) => apiClient.get(`/patients/${id}/lab-reports`),
+  getVitals:            (id) => apiClient.get(`/patients/${id}/vitals`),
+  getBill:              (id) => apiClient.get(`/patients/${id}/bill`),
+  getDischargeList:     (id) => apiClient.get(`/patients/${id}/discharge-checklist`),
+  toggleDischargeTask:  (id, taskIndex) => apiClient.patch(`/patients/${id}/discharge-checklist/${taskIndex}`),
+  askAI:                (id, question) => apiClient.post(`/patients/${id}/ask`, { question }),
 }
 
 // ── Staff endpoints ───────────────────────────────────────────

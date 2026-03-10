@@ -14,7 +14,7 @@ import {
     CheckCircle2, Circle, ChevronDown, ChevronUp,
     ArrowUp, ArrowDown, Minus, BedDouble, Calendar,
     Phone, MapPin, Droplets, Stethoscope,
-    MessageCircle, Send, Bot
+    MessageCircle, Send, Bot, Loader2, Home, Shield
 } from 'lucide-react'
 import { patientApi } from '../api/client'
 
@@ -257,20 +257,27 @@ function BillingBar({ bill }) {
 
 // ─── Helper : Checklist Item ──────────────────────────────────
 
-function ChecklistItem({ task, isCompleted, itemIndex }) {
+function ChecklistItem({ task, isCompleted, itemIndex, onToggle, isToggling }) {
     return (
         <div
-            className={`flex items-center gap-3 p-3.5 rounded-xl transition-all animate-slide-up ${
-                isCompleted ? 'bg-emerald-50 border border-emerald-100' : 'bg-slate-50 border border-slate-100'
+            className={`flex items-center gap-3 p-3.5 rounded-xl transition-all animate-slide-up cursor-pointer select-none ${
+                isCompleted ? 'bg-emerald-50 border border-emerald-100 hover:bg-emerald-100/70' : 'bg-slate-50 border border-slate-100 hover:bg-slate-100'
             }`}
             style={{ animationDelay: `${itemIndex * 0.06}s` }}
+            onClick={onToggle}
+            title={isCompleted ? 'Click to mark incomplete' : 'Click to mark complete'}
         >
-            {isCompleted
-                ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
-                : <Circle size={18} className="text-slate-300 shrink-0" />
+            {isToggling
+                ? <Loader2 size={18} className="text-slate-400 shrink-0 animate-spin" />
+                : isCompleted
+                    ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+                    : <Circle size={18} className="text-slate-300 shrink-0" />
             }
-            <span className={`text-sm font-medium ${isCompleted ? 'text-emerald-700 line-through' : 'text-slate-600'}`}>
+            <span className={`text-sm font-medium flex-1 ${isCompleted ? 'text-emerald-700 line-through' : 'text-slate-600'}`}>
                 {task}
+            </span>
+            <span className="text-[10px] text-slate-300 shrink-0">
+                {isToggling ? 'Saving…' : (isCompleted ? '✓ Done' : 'Tap to complete')}
             </span>
         </div>
     )
@@ -463,6 +470,7 @@ export default function PatientPortal({ onLogout }) {
     const [fetchError,    setFetchError]    = useState(null)
     const [lastRefresh,   setLastRefresh]   = useState(new Date())
     const [activeSection, setActiveSection] = useState('profile')
+    const [togglingTask,  setTogglingTask]  = useState(null)  // index of task being toggled
 
 
     // ── Data fetching ──────────────────────────────────────────
@@ -506,6 +514,41 @@ export default function PatientPortal({ onLogout }) {
         const timer = setInterval(loadPortalData, 30000)
         return () => clearInterval(timer)
     }, [])
+
+
+    // ── Toggle discharge checklist item ────────────────────────
+    const toggleChecklistItem = async (taskIndex) => {
+        if (togglingTask !== null) return  // prevent double-click
+        setTogglingTask(taskIndex)
+
+        // Optimistic update
+        const prevData = dischargeData
+        setDischargeData(prev => {
+            if (!prev) return prev
+            const updatedChecklist = prev.checklist.map((item, i) =>
+                i === taskIndex ? { ...item, completed: !item.completed } : item
+            )
+            const tasksDone = updatedChecklist.filter(t => t.completed).length
+            const total = updatedChecklist.length
+            return {
+                ...prev,
+                checklist          : updatedChecklist,
+                tasks_completed    : tasksDone,
+                tasks_total        : total,
+                completion_percent : Math.round((tasksDone / total) * 100),
+                ready_for_discharge: tasksDone === total,
+            }
+        })
+
+        try {
+            await patientApi.toggleDischargeTask(DEMO_PATIENT_ID, taskIndex)
+        } catch {
+            // Rollback on error
+            setDischargeData(prevData)
+        } finally {
+            setTogglingTask(null)
+        }
+    }
 
 
     // ── Scroll spy ─────────────────────────────────────────────
@@ -715,6 +758,9 @@ export default function PatientPortal({ onLogout }) {
                                     <InfoChip Icon={Calendar}    label="Admitted"      value={patientData?.admission_date} />
                                     <InfoChip Icon={Calendar}    label="Exp. Discharge" value={patientData?.expected_discharge} />
                                     <InfoChip Icon={Phone}       label="Phone"         value={patientData?.phone} />
+                                    <InfoChip Icon={Home}        label="Address"       value={patientData?.address} />
+                                    <InfoChip Icon={Shield}      label="Status"        value={patientData?.status} />
+                                    <InfoChip Icon={MapPin}      label="Department"    value={patientData?.department_name} />
                                 </div>
 
                             </div>
@@ -908,6 +954,8 @@ export default function PatientPortal({ onLogout }) {
                                     task={item.task}
                                     isCompleted={item.completed}
                                     itemIndex={itemIdx}
+                                    onToggle={() => toggleChecklistItem(itemIdx)}
+                                    isToggling={togglingTask === itemIdx}
                                 />
                             ))}
                         </div>

@@ -12,10 +12,15 @@ from core.config import (
 )
 
 
-def compute_delta_pct(current, baseline):
+def _round(value: float, ndigits: int = 1) -> float:
+    """Round helper using integer arithmetic — bypasses Pyre2's broken round() stub."""
+    factor: float = 10.0 ** ndigits
+    return float(int(value * factor + 0.5)) / factor
+
+def compute_delta_pct(current: float, baseline: float) -> float:
     if baseline == 0:
-        return 0
-    return round(((current - baseline) / baseline) * 100, 1)
+        return 0.0
+    return _round(((current - baseline) / baseline) * 100.0)
 
 
 def detect_department_anomalies(dept: dict) -> list:
@@ -29,7 +34,7 @@ def detect_department_anomalies(dept: dict) -> list:
     timestamp       = datetime.now().isoformat()
 
     # ── Rule 1 : Bed occupancy ────────────────────────────────
-    bed_pct = round((dept["occupied_beds"] / dept["total_beds"]) * 100, 1)
+    bed_pct = _round((dept["occupied_beds"] / dept["total_beds"]) * 100.0)
 
     if bed_pct >= THRESHOLD_BED_OCCUPANCY_CRITICAL:
         found_anomalies.append({

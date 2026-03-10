@@ -21,22 +21,10 @@ app = FastAPI(
 @app.on_event("startup")
 def on_startup():
     """
-    Optional: initialise SQLite DB and seed mock data.
-    Failure is non-fatal — all role endpoints work from in-memory data.
+    In-memory mode: no DB required. All data is served from simulated stores.
     """
-    try:
-        from database.db import init_db
-        init_db()
-        print("[Startup] Database initialised successfully.")
-    except Exception as e:
-        print(f"[Startup] DB skipped (running in memory-only mode): {e}")
-    # ── Plugin DB (new tables) ─────────────────────────────────
-    try:
-        from database.init_db import init_plugin_db
-        init_plugin_db()
-        print("[Startup] Plugin database initialised.")
-    except Exception as e:
-        print(f"[Startup] Plugin DB skipped: {e}")
+    print("[Startup] PrimeCare running in in-memory simulation mode.")
+
 
 # ── CORS — allow Vite frontend ────────────────────────────────
 app.add_middleware(

@@ -164,22 +164,9 @@ export default function LoginPage({ onRoleSelected }) {
                 <h1 className="text-4xl font-black text-slate-800 tracking-tight mb-3">
                     Welcome to <span className="text-sky-500">PrimeCare</span>
                 </h1>
-                <p className="text-slate-500 text-lg max-w-xl mx-auto leading-relaxed">
+                <p className="text-slate-500 text-lg max-w-xl mx-auto leading-relaxed mb-10">
                     Real-time hospital intelligence platform. Select your role to access your personalised dashboard.
                 </p>
-                <div className="flex items-center justify-center gap-8 mt-8 mb-2">
-                    {[
-                        { statValue: '652', statLabel: 'Patients Today' },
-                        { statValue: '395', statLabel: 'Total Beds' },
-                        { statValue: '6',   statLabel: 'Departments' },
-                        { statValue: '58',  statLabel: 'Staff On Duty' },
-                    ].map(({ statValue, statLabel }) => (
-                        <div key={statLabel} className="text-center">
-                            <p className="text-2xl font-black text-slate-800">{statValue}</p>
-                            <p className="text-xs text-slate-400 mt-0.5">{statLabel}</p>
-                        </div>
-                    ))}
-                </div>
             </div>
 
             <div className="max-w-6xl mx-auto px-6 pb-16">
@@ -198,7 +185,7 @@ export default function LoginPage({ onRoleSelected }) {
             </div>
 
             <div className="border-t border-slate-200 bg-white/50 py-4">
-                <p className="text-center text-xs text-slate-400">PrimeCare Hospitals · GKM_8 Intelligence Platform · VITC GlitchCon 2.0</p>
+                <p className="text-center text-xs text-slate-400">PrimeCare Hospitals Platform</p>
             </div>
         </div>
     )

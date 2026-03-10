@@ -4,12 +4,19 @@
 # Computes aggregates, KPIs, health score from department data
 # ─────────────────────────────────────────────────────────────
 
+from datetime import datetime
 from core.config import (
     THRESHOLD_BED_OCCUPANCY_WARNING,
     THRESHOLD_BED_OCCUPANCY_CRITICAL,
     THRESHOLD_OPD_WAIT_WARNING,
     THRESHOLD_OPD_WAIT_CRITICAL,
 )
+
+
+def _round(value: float, ndigits: int = 1) -> float:
+    """Round helper using integer arithmetic — bypasses Pyre2's broken round() stub."""
+    factor: float = 10.0 ** ndigits
+    return float(int(value * factor + 0.5)) / factor
 
 
 def compute_percentage(numerator, denominator):
@@ -63,8 +70,8 @@ def compute_aggregates(departments: list) -> dict:
     total_critical  = sum(d["critical_patients"]      for d in departments)
     total_scheduled = sum(d["surgeries_scheduled"]    for d in departments)
     total_completed = sum(d["surgeries_completed"]    for d in departments)
-    avg_wait        = round(sum(d["opd_wait_time_min"] for d in departments) / len(departments), 1)
-    avg_satisfaction= round(sum(d["patient_satisfaction"] for d in departments) / len(departments), 2)
+    avg_wait        = _round(float(sum(d["opd_wait_time_min"] for d in departments)) / len(departments))
+    avg_satisfaction= _round(float(sum(d["patient_satisfaction"] for d in departments)) / len(departments), 2)
     bed_occupancy   = compute_percentage(occupied_beds, total_beds)
     surgery_rate    = compute_percentage(total_completed, total_scheduled) if total_scheduled > 0 else 100.0
 
@@ -95,14 +102,19 @@ def compute_health_score(aggregates: dict) -> dict:
     sat_score      = aggregates["avg_satisfaction"] * 20
     surgery_score  = aggregates["surgery_completion_rate"]
 
-    score = round(
-        bed_score     * 0.30 +
-        wait_score    * 0.25 +
-        sat_score     * 0.25 +
-        surgery_score * 0.20,
-        1
+    raw_score: float = (
+        float(bed_score)     * 0.30 +
+        float(wait_score)    * 0.25 +
+        float(sat_score)     * 0.25 +
+        float(surgery_score) * 0.20
     )
-    score = max(0, min(100, score))
+    score = _round(raw_score)
+    clamped: float = float(raw_score)
+    if clamped < 0.0:
+        clamped = 0.0
+    if clamped > 100.0:
+        clamped = 100.0
+    score = _round(clamped)
 
     grade = "A" if score >= 85 else "B" if score >= 70 else "C" if score >= 55 else "D"
     label = "Excellent" if score >= 85 else "Good" if score >= 70 else "Needs Attention" if score >= 55 else "Critical"
@@ -248,5 +260,5 @@ def compute_kpis(departments: list, trend_data: dict) -> dict:
     return {
         "kpis"         : kpi_list,
         "health_score" : compute_health_score(aggregates),
-        "timestamp"    : __import__("datetime").datetime.now().isoformat(),
+        "timestamp"    : datetime.now().isoformat(),
     }

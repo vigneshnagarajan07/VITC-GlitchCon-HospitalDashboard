@@ -552,12 +552,17 @@ function PatientDetailView({ patient, onClose }) {
 
   const infoRows = [
     { label: 'Age / Gender',        value: `${patient.age || '—'} yrs · ${patient.gender || '—'}` },
-    { label: 'Department',          value: patient.department || '—' },
+    { label: 'Department',          value: patient.department || patient.department_name || '—' },
     { label: 'Assigned Doctor',     value: patient.assigned_doctor || '—' },
     { label: 'Diagnosis',           value: patient.diagnosis || '—' },
-    { label: 'Contact',             value: patient.contact || '—' },
-    { label: 'Admission Status',    value: patient.admission_status },
-    { label: 'Admitted',            value: patient.created_at ? new Date(patient.created_at).toLocaleDateString('en-IN') : '—' },
+    { label: 'Blood Group',         value: patient.blood_group || '—' },
+    { label: 'Ward',                value: patient.ward || '—' },
+    { label: 'Bed Number',          value: patient.bed_number || '—' },
+    { label: 'Contact / Phone',     value: patient.contact || patient.phone || '—' },
+    { label: 'Address',             value: patient.address || '—' },
+    { label: 'Admission Date',      value: patient.admission_date || (patient.created_at ? new Date(patient.created_at).toLocaleDateString('en-IN') : '—') },
+    { label: 'Exp. Discharge',      value: patient.expected_discharge || '—' },
+    { label: 'Admission Status',    value: patient.admission_status || patient.status },
   ]
 
   return (
