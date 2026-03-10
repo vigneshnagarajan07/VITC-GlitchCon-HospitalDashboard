@@ -11,7 +11,8 @@ import {
     AlertTriangle, RefreshCw, LogOut, CheckCircle,
     Users, ChevronRight, Pill, FlaskConical,
     BedDouble, Calendar, Phone, User,
-    TrendingUp, TrendingDown, Minus, Zap
+    TrendingUp, TrendingDown, Minus, Zap,
+    Brain, Sparkles, X, FileText, ShieldAlert, Target, BarChart3
 } from 'lucide-react'
 import { staffApi, analyticsApi, insightsApi, patientApi } from '../api/client'
 
@@ -22,10 +23,11 @@ const DEMO_DEPT_ID     = 'cardiology'
 
 // ─── Sidebar sections ─────────────────────────────────────────
 const SIDEBAR_SECTIONS = [
-    { sectionId: 'patients',  label: 'My Patients',    Icon: Users        },
-    { sectionId: 'opd',       label: 'OPD Stats',      Icon: Activity     },
-    { sectionId: 'alerts',    label: 'Critical Alerts', Icon: AlertTriangle },
-    { sectionId: 'schedule',  label: 'My Schedule',    Icon: Calendar     },
+    { sectionId: 'patients',    label: 'My Patients',     Icon: Users         },
+    { sectionId: 'ai-insights', label: 'AI Insights',     Icon: Brain         },
+    { sectionId: 'opd',         label: 'OPD Stats',       Icon: Activity      },
+    { sectionId: 'alerts',      label: 'Critical Alerts', Icon: AlertTriangle },
+    { sectionId: 'schedule',    label: 'My Schedule',     Icon: Calendar      },
 ]
 
 // ─── Today's schedule (simulated) ────────────────────────────
@@ -60,7 +62,7 @@ function DoctorSection({ sectionId, title, subtitle, badge, children }) {
 
 // ─── Helper : Patient Card ────────────────────────────────────
 
-function PatientCard({ patient, cardIndex }) {
+function PatientCard({ patient, cardIndex, onAiReport }) {
     const [expanded, setExpanded] = useState(false)
 
     const latestVital = patient.vitals?.[0] || {}
@@ -113,6 +115,16 @@ function PatientCard({ patient, cardIndex }) {
                             <MiniVital label="SpO₂"  value={`${latestVital.spo2_pct}%`} />
                             <MiniVital label="Temp"  value={`${latestVital.temperature_f}°F`} />
                         </div>
+                    )}
+
+                    {/* AI Report button */}
+                    {onAiReport && (
+                        <button
+                            onClick={() => onAiReport(patient.patient_id)}
+                            className="shrink-0 px-3 py-2 rounded-xl border border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100 text-xs font-bold flex items-center gap-1.5 transition-all"
+                        >
+                            <Sparkles size={12} /> AI Report
+                        </button>
                     )}
 
                     {/* Expand */}
@@ -261,17 +273,24 @@ export default function DoctorDashboard({ onLogout }) {
     const [lastRefresh, setLastRefresh] = useState(new Date())
     const [activeSection, setActiveSection] = useState('patients')
 
+    // AI Agent state
+    const [aiAnalysis,    setAiAnalysis]    = useState(null)
+    const [aiReportData,  setAiReportData]  = useState(null)
+    const [aiReportOpen,  setAiReportOpen]  = useState(false)
+    const [aiReportLoading, setAiReportLoading] = useState(false)
+
 
     // ── Data fetching ──────────────────────────────────────────
     const loadData = async () => {
         try {
             setFetchError(null)
 
-            const [doctorRes, deptRes, anomaliesRes, allPatientsRes] = await Promise.all([
+            const [doctorRes, deptRes, anomaliesRes, allPatientsRes, aiRes] = await Promise.all([
                 staffApi.getById(DEMO_DOCTOR_ID),
                 analyticsApi.getDepartment(DEMO_DEPT_ID),
                 insightsApi.getAnomalies(),
                 patientApi.getAll(),
+                insightsApi.getAIAgentAnalysis().catch(() => null),
             ])
 
             const doctor = doctorRes.data
@@ -289,6 +308,9 @@ export default function DoctorDashboard({ onLogout }) {
             const myPatients   = allPatients.filter(p => assignedIds.includes(p.patient_id))
             setPatientList(myPatients)
 
+            // AI Analysis
+            if (aiRes?.data?.analysis) setAiAnalysis(aiRes.data.analysis)
+
             setLastRefresh(new Date())
 
         } catch (err) {
@@ -296,6 +318,16 @@ export default function DoctorDashboard({ onLogout }) {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const openAiReport = async (patientId) => {
+        setAiReportLoading(true)
+        setAiReportOpen(true)
+        try {
+            const res = await patientApi.getAIReport(patientId)
+            setAiReportData(res.data.report)
+        } catch { setAiReportData(null) }
+        finally { setAiReportLoading(false) }
     }
 
     useEffect(() => {
@@ -508,8 +540,89 @@ export default function DoctorDashboard({ onLogout }) {
                         ) : (
                             <div className="space-y-4">
                                 {patientList.map((patient, idx) => (
-                                    <PatientCard key={patient.patient_id} patient={patient} cardIndex={idx} />
+                                    <PatientCard key={patient.patient_id} patient={patient} cardIndex={idx} onAiReport={openAiReport} />
                                 ))}
+                            </div>
+                        )}
+                    </DoctorSection>
+
+
+                    {/* ── Section: AI Insights ── */}
+                    <DoctorSection
+                        sectionId="ai-insights"
+                        title="AI Agent Insights"
+                        subtitle="Real-time anomaly detection, KPI analysis & predictions"
+                        badge={
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-bold border border-violet-200">
+                                <Brain size={12} /> AI-Powered
+                            </span>
+                        }
+                    >
+                        {aiAnalysis ? (
+                            <div className="space-y-4">
+                                {/* AI Summary */}
+                                <div className="bg-gradient-to-br from-violet-50 to-sky-50 rounded-2xl border border-violet-200 p-5">
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+                                            <Sparkles size={16} className="text-violet-500" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 text-sm">AI Analysis Summary</p>
+                                            <p className="text-xs text-slate-400">Generated by GKM_8 Intelligence Agent</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-slate-700 leading-relaxed">{aiAnalysis.ai_summary}</p>
+                                </div>
+
+                                {/* KPI + Health Score row */}
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                    <AiKpiTile label="Health Score" value={`${aiAnalysis.health_score?.score}/100`} sub={aiAnalysis.health_score?.label} color={aiAnalysis.health_score?.score >= 70 ? 'emerald' : 'red'} icon={<Target size={18} />} />
+                                    <AiKpiTile label="Bed Occupancy" value={`${aiAnalysis.kpi_summary?.bed_occupancy_pct}%`} sub={`${aiAnalysis.kpi_summary?.occupied_beds}/${aiAnalysis.kpi_summary?.total_beds}`} color="sky" icon={<BedDouble size={18} />} />
+                                    <AiKpiTile label="Anomalies" value={aiAnalysis.anomaly_count} sub={`${aiAnalysis.critical_anomalies} critical`} color={aiAnalysis.critical_anomalies > 0 ? 'red' : 'emerald'} icon={<ShieldAlert size={18} />} />
+                                    <AiKpiTile label="Predictions" value={aiAnalysis.prediction_count} sub="breach warnings" color={aiAnalysis.prediction_count > 0 ? 'amber' : 'emerald'} icon={<BarChart3 size={18} />} />
+                                </div>
+
+                                {/* Anomalies list */}
+                                {aiAnalysis.anomalies?.length > 0 && (
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-4">
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Detected Anomalies</p>
+                                        <div className="space-y-2">
+                                            {aiAnalysis.anomalies.slice(0, 4).map((a, i) => (
+                                                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border ${a.severity === 'critical' ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'}`}>
+                                                    <AlertTriangle size={14} className={a.severity === 'critical' ? 'text-red-500' : 'text-amber-500'} />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-bold text-slate-700">{a.kpi_name?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+                                                        <p className="text-xs text-slate-500 truncate">{a.insight}</p>
+                                                    </div>
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${a.severity === 'critical' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{a.severity}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Predictions */}
+                                {aiAnalysis.predictions?.length > 0 && (
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-4">
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Breach Predictions (next 48h)</p>
+                                        <div className="space-y-2">
+                                            {aiAnalysis.predictions.slice(0, 3).map((p, i) => (
+                                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-sky-200 bg-sky-50">
+                                                    <BarChart3 size={14} className="text-sky-500" />
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-bold text-slate-700">{p.alert_message?.substring(2, 80)}...</p>
+                                                    </div>
+                                                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">~{Math.round(p.hours_to_breach)}h</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="bg-violet-50 border border-violet-200 rounded-2xl p-8 text-center">
+                                <Brain size={28} className="text-violet-400 mx-auto mb-2" />
+                                <p className="font-semibold text-violet-700">Loading AI analysis...</p>
                             </div>
                         )}
                     </DoctorSection>
@@ -668,6 +781,122 @@ export default function DoctorDashboard({ onLogout }) {
 
                 </main>
             </div>
+
+            {/* ── AI Report Modal ── */}
+            {aiReportOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setAiReportOpen(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[85vh] overflow-y-auto m-4" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center"><FileText size={16} className="text-violet-500" /></div>
+                                <div>
+                                    <p className="font-bold text-slate-800">AI Patient Report</p>
+                                    <p className="text-xs text-slate-400">{aiReportData?.patient_name || 'Loading...'}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setAiReportOpen(false)} className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"><X size={16} /></button>
+                        </div>
+
+                        {aiReportLoading ? (
+                            <div className="p-12 text-center"><RefreshCw size={24} className="text-violet-400 animate-spin mx-auto mb-3" /><p className="text-sm text-slate-500">Generating AI report...</p></div>
+                        ) : aiReportData ? (
+                            <div className="p-6 space-y-5">
+                                {/* AI Summary */}
+                                <div className="bg-gradient-to-br from-violet-50 to-sky-50 rounded-xl border border-violet-200 p-4">
+                                    <p className="text-xs font-bold text-violet-600 uppercase tracking-wide mb-2">AI Clinical Summary</p>
+                                    <p className="text-sm text-slate-700 leading-relaxed">{aiReportData.ai_summary}</p>
+                                </div>
+
+                                {/* Risk Score */}
+                                <div className="bg-white rounded-xl border border-slate-200 p-4">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Risk Assessment</p>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black ${
+                                            aiReportData.risk_score?.level === 'critical' ? 'bg-red-100 text-red-600' :
+                                            aiReportData.risk_score?.level === 'elevated' ? 'bg-amber-100 text-amber-600' :
+                                            'bg-emerald-100 text-emerald-600'
+                                        }`}>{aiReportData.risk_score?.score}</div>
+                                        <div>
+                                            <p className="font-bold text-slate-800">{aiReportData.risk_score?.label}</p>
+                                            <p className="text-xs text-slate-500 mt-0.5">Score {aiReportData.risk_score?.score}/100</p>
+                                        </div>
+                                        <div className="ml-auto text-right">
+                                            <p className="text-xs text-slate-400">Prognosis</p>
+                                            <p className="text-sm font-bold text-slate-700 capitalize">{aiReportData.predictions?.prognosis}</p>
+                                        </div>
+                                    </div>
+                                    {aiReportData.risk_score?.factors?.length > 0 && (
+                                        <div className="mt-3 space-y-1">
+                                            {aiReportData.risk_score.factors.slice(0, 4).map((f, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-xs text-slate-600">
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${f.impact === 'critical' || f.impact === 'high' ? 'bg-red-400' : 'bg-amber-400'}`} />
+                                                    {f.factor}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Vitals Analysis */}
+                                <div className="bg-white rounded-xl border border-slate-200 p-4">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Vitals Analysis</p>
+                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                        {['blood_pressure', 'pulse_bpm', 'spo2_pct', 'temperature_f'].map(k => (
+                                            <div key={k} className="p-2 bg-slate-50 rounded-lg">
+                                                <p className="text-xs text-slate-400 capitalize">{k.replace(/_/g, ' ')}</p>
+                                                <p className="text-sm font-black text-slate-700">{aiReportData.vitals_analysis?.latest?.[k] ?? 'N/A'}{k === 'spo2_pct' ? '%' : k === 'temperature_f' ? '°F' : k === 'pulse_bpm' ? ' bpm' : ''}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-slate-500">Trend: <span className="font-bold capitalize">{aiReportData.vitals_analysis?.trend}</span></p>
+                                    {aiReportData.vitals_analysis?.flags?.map((f, i) => (
+                                        <div key={i} className={`mt-2 text-xs p-2 rounded-lg border ${f.severity === 'critical' ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
+                                            ⚠ {f.message}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Lab Anomalies */}
+                                {aiReportData.lab_anomalies?.length > 0 && (
+                                    <div className="bg-white rounded-xl border border-slate-200 p-4">
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Lab Anomalies ({aiReportData.lab_anomaly_count})</p>
+                                        <div className="space-y-2">
+                                            {aiReportData.lab_anomalies.map((a, i) => (
+                                                <div key={i} className={`flex items-center justify-between p-2 rounded-lg border ${a.severity === 'critical' ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'}`}>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-700">{a.parameter}</p>
+                                                        <p className="text-xs text-slate-500">{a.test_name}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-xs font-black text-slate-700">{a.value} {a.unit}</p>
+                                                        <p className="text-xs text-slate-400">Ref: {a.reference}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Predictions */}
+                                <div className="bg-white rounded-xl border border-slate-200 p-4">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Recovery Prediction</p>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="text-center p-2 bg-slate-50 rounded-lg"><p className="text-xs text-slate-400">Progress</p><p className="text-lg font-black text-sky-600">{aiReportData.predictions?.progress_pct}%</p></div>
+                                        <div className="text-center p-2 bg-slate-50 rounded-lg"><p className="text-xs text-slate-400">Days Left</p><p className="text-lg font-black text-slate-700">{aiReportData.predictions?.days_remaining_adjusted}</p></div>
+                                        <div className="text-center p-2 bg-slate-50 rounded-lg"><p className="text-xs text-slate-400">Trajectory</p><p className="text-sm font-bold text-slate-700 capitalize">{aiReportData.predictions?.recovery_trajectory}</p></div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-2">Predicted discharge: <span className="font-bold">{aiReportData.predictions?.predicted_discharge}</span> (confidence: {aiReportData.predictions?.discharge_confidence})</p>
+                                </div>
+
+                                <p className="text-xs text-slate-400 text-center">Generated by {aiReportData.agent} at {new Date(aiReportData.generated_at).toLocaleString()}</p>
+                            </div>
+                        ) : (
+                            <div className="p-12 text-center"><AlertTriangle size={24} className="text-red-400 mx-auto mb-3" /><p className="text-sm text-red-500">Failed to generate report</p></div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -686,6 +915,24 @@ function OpdTile({ icon, bg, label, value, unit }) {
                 <p className="text-xl font-black text-slate-800 tabular-nums">{value}</p>
                 {unit && <p className="text-xs text-slate-400">{unit}</p>}
             </div>
+        </div>
+    )
+}
+
+function AiKpiTile({ label, value, sub, color, icon }) {
+    const colorMap = {
+        emerald: 'bg-emerald-50 border-emerald-200 text-emerald-600',
+        red:     'bg-red-50 border-red-200 text-red-600',
+        sky:     'bg-sky-50 border-sky-200 text-sky-600',
+        amber:   'bg-amber-50 border-amber-200 text-amber-600',
+        violet:  'bg-violet-50 border-violet-200 text-violet-600',
+    }
+    const cls = colorMap[color] || colorMap.sky
+    return (
+        <div className={`rounded-2xl border p-4 ${cls}`}>
+            <div className="flex items-center gap-2 mb-1 opacity-70">{icon}<span className="text-xs font-bold uppercase tracking-wide">{label}</span></div>
+            <p className="text-2xl font-black tabular-nums">{value}</p>
+            {sub && <p className="text-xs opacity-60 mt-0.5">{sub}</p>}
         </div>
     )
 }

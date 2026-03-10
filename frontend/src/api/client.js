@@ -23,9 +23,10 @@ export const analyticsApi = {
 
 // ── Insights endpoints ────────────────────────────────────────
 export const insightsApi = {
-  getAnomalies:       () => apiClient.get('/insights/anomalies'),
-  getAIInsights:      () => apiClient.get('/insights/ai-insights'),
-  getRecommendations: () => apiClient.get('/insights/recommendations'),
+  getAnomalies:        () => apiClient.get('/insights/anomalies'),
+  getAIInsights:       () => apiClient.get('/insights/ai-insights'),
+  getRecommendations:  () => apiClient.get('/insights/recommendations'),
+  getAIAgentAnalysis:  () => apiClient.get('/insights/ai-agent-analysis'),
 }
 
 // ── Dashboard endpoints ───────────────────────────────────────
@@ -49,6 +50,7 @@ export const patientApi = {
   getDischargeList:     (id) => apiClient.get(`/patients/${id}/discharge-checklist`),
   toggleDischargeTask:  (id, taskIndex) => apiClient.patch(`/patients/${id}/discharge-checklist/${taskIndex}`),
   askAI:                (id, question) => apiClient.post(`/patients/${id}/ask`, { question }),
+  getAIReport:          (id) => apiClient.get(`/patients/${id}/ai-report`),
 }
 
 // ── Staff endpoints ───────────────────────────────────────────

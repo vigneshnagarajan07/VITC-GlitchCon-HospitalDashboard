@@ -8,7 +8,8 @@ import { useState } from 'react'
 import {
     Activity, Lock, User, Eye, EyeOff,
     Shield, AlertCircle, ChevronRight, Heart,
-    BedDouble, Clock, Users, TrendingUp, Stethoscope
+    BedDouble, Clock, Users, TrendingUp, Stethoscope,
+    Brain, FileText, Sparkles, BarChart3
 } from 'lucide-react'
 
 const DEMO_CREDENTIALS = [
@@ -26,6 +27,13 @@ const LIVE_STATS = [
     { icon: Activity,  label: 'Health Score',   value: '82/100', color: 'text-violet-600' },
     { icon: Heart,     label: 'Surgeries Done', value: '14',     color: 'text-rose-500' },
     { icon: TrendingUp,label: 'NPS Score',      value: '72 pts', color: 'text-sky-600' },
+]
+
+const PLATFORM_FEATURES = [
+    { title: "AI Anomaly Detection", desc: "Instantly flags critical KPI deviations using advanced ML models.", icon: Brain, color: "violet" },
+    { title: "Agentic Patient Reports", desc: "Auto-generates clinical summaries & risk scores via AI.", icon: FileText, color: "sky" },
+    { title: "Predictive Analytics", desc: "Forecasts metric breaches 48 hours in advance.", icon: TrendingUp, color: "amber" },
+    { title: "Real-time Operations", desc: "Live monitoring of bed occupancy and OPD queues.", icon: Activity, color: "emerald" }
 ]
 
 const COLOR_MAP = {
@@ -116,10 +124,6 @@ export default function AuthLoginPage({ onAuthenticated }) {
                     {/* ── Left column: branding + stats ── */}
                     <div className="flex-1 hidden lg:block">
                         <div className="animate-slide-up">
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 mb-6">
-                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-                                <span className="text-xs font-bold text-sky-700">GKM_8 · VITC GlitchCon 2.0</span>
-                            </div>
                             <h1 className="text-5xl font-black text-slate-800 leading-tight mb-4">
                                 Hospital<br/>
                                 <span className="text-sky-500">Intelligence</span><br/>
@@ -130,22 +134,23 @@ export default function AuthLoginPage({ onAuthenticated }) {
                             </p>
                         </div>
 
-                        {/* Live stat tiles */}
-                        <div className="grid grid-cols-2 gap-3 animate-slide-up stagger-2">
-                            {LIVE_STATS.map((stat, i) => {
-                                const Icon = stat.icon
+                        {/* Platform Features */}
+                        <div className="grid grid-cols-2 gap-4 animate-slide-up stagger-2">
+                            {PLATFORM_FEATURES.map((feature, i) => {
+                                const Icon = feature.icon
+                                const c = COLOR_MAP[feature.color]
                                 return (
                                     <div
                                         key={i}
-                                        className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3 stat-card shadow-sm"
-                                        style={{ animationDelay: `${i * 0.06}s` }}
+                                        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200 p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow"
+                                        style={{ animationDelay: `${i * 0.08}s` }}
                                     >
-                                        <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                                            <Icon size={16} className={stat.color} />
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.bg} ${c.border} border`}>
+                                            <Icon size={18} className={c.icon} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{stat.label}</p>
-                                            <p className={`text-base font-extrabold tabular-nums ${stat.color}`}>{stat.value}</p>
+                                            <p className={`text-sm font-bold mb-1 ${c.text}`}>{feature.title}</p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">{feature.desc}</p>
                                         </div>
                                     </div>
                                 )
@@ -299,7 +304,7 @@ export default function AuthLoginPage({ onAuthenticated }) {
             {/* ── Footer ── */}
             <footer className="border-t border-slate-200 bg-white py-3.5">
                 <p className="text-center text-[11px] text-slate-400">
-                    PrimeCare Hospitals · GKM_8 Intelligence Platform · VITC GlitchCon 2.0
+                    PrimeCare Medical Hospital · NABH Accredited · Chennai, Tamil Nadu
                 </p>
             </footer>
         </div>

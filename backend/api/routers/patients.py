@@ -34,6 +34,26 @@ def get_patient(patient_id: str):
     return patient
 
 
+@router.get("/{patient_id}/ai-report")
+def get_patient_ai_report(patient_id: str):
+    """
+    Generate a comprehensive AI report for a patient.
+    Includes vitals analysis, lab anomaly detection, risk scoring,
+    outcome predictions, and an AI-generated clinical summary.
+    """
+    from services.ai_report_service import generate_patient_report
+
+    patient = fetch_patient_by_id(patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail=f"Patient '{patient_id}' not found")
+
+    report = generate_patient_report(patient)
+    return {
+        "report": report,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
 @router.get("/{patient_id}/prescriptions")
 def get_patient_prescriptions(patient_id: str):
     patient = fetch_patient_by_id(patient_id)

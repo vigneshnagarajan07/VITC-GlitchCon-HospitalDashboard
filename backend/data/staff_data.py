@@ -15,7 +15,7 @@ APOLLO_STAFF = [
         "shift"         : "Morning",
         "shift_time"    : "08:00 - 16:00",
         "on_duty_today" : True,
-        "patients_assigned" : ["APL-2024-0847"],
+        "patients_assigned" : ["APL-2024-0847", "APL-2024-0972"],
         "experience_years"  : 18,
         "specialization"    : "Interventional Cardiology",
         "contact"           : "+91 98401 11001",

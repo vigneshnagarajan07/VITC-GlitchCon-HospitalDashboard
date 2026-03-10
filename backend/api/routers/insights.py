@@ -49,3 +49,18 @@ def get_recommendations():
         "count"           : len(recommendations),
         "timestamp"       : datetime.now().isoformat(),
     }
+
+
+@router.get("/ai-agent-analysis")
+def get_ai_agent_analysis():
+    """
+    Run the full AI agent pipeline:
+    Anomaly detection + KPI analysis + Predictions + AI Summary
+    """
+    from services.ai_report_service import run_ai_agent_analysis
+
+    analysis = run_ai_agent_analysis()
+    return {
+        "analysis" : analysis,
+        "timestamp": datetime.now().isoformat(),
+    }

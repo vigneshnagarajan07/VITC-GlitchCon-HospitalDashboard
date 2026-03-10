@@ -25,7 +25,7 @@ import { useToast } from '../components/Toast'
 
 // ── Sidebar nav ───────────────────────────────────────────────
 const SIDEBAR_SECTIONS = [
-    { sectionId: 'health',           label: 'Health Score',     Icon: Activity     },
+    { sectionId: 'health',           label: 'Performance Metrics', Icon: Activity     },
     { sectionId: 'kpis',             label: 'KPIs',             Icon: BarChart3    },
     { sectionId: 'anomalies',        label: 'Anomalies',        Icon: AlertTriangle},
     { sectionId: 'departments',      label: 'Departments',      Icon: BedDouble    },
@@ -85,7 +85,7 @@ function HealthScoreGauge({ scoreValue, scoreGrade, scoreLabel }) {
                 </svg>
             </div>
             <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wide font-bold mb-1">Hospital Health Score</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-bold mb-1">Hospital Performance Metrics</p>
                 <div className="flex items-baseline gap-2 mb-2">
                     <span className="text-5xl font-black" style={{ color: gaugeColor }}>{scoreGrade}</span>
                     <span className="text-lg font-bold" style={{ color: gaugeColor }}>{scoreLabel}</span>
@@ -201,7 +201,7 @@ function DepartmentRow({ deptData, rowIndex }) {
         >
             <div className="w-44 shrink-0">
                 <p className="font-extrabold text-slate-800 text-sm">{deptData.name}</p>
-                <p className="text-xs text-slate-400">{deptData.head_doctor_name}</p>
+                <p className="text-xs text-slate-400">&nbsp;</p>
             </div>
             <div className="flex-1">
                 <div className="flex justify-between text-xs text-slate-500 mb-1">
@@ -469,15 +469,39 @@ export default function AdminDashboard({ onLogout }) {
                     </div>
                     <div className="flex items-center gap-2">
                         {criticalCount > 0 && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200 animate-pulse-ring-red">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                {criticalCount} Critical
-                            </span>
+                            <div className="relative group">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200 animate-pulse-ring-red cursor-help">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                    {criticalCount} Critical
+                                </span>
+                                <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-red-100 p-3 hidden group-hover:block z-50">
+                                    <p className="text-xs font-bold text-slate-800 mb-2">Critical Anomalies</p>
+                                    <div className="space-y-2">
+                                        {anomalyList.filter(a => a.severity === 'critical').slice(0, 3).map((a, i) => (
+                                            <div key={i} className="text-xs">
+                                                <span className="font-semibold text-red-600">{a.department_name}:</span> <span className="text-slate-600">{a.message}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         )}
                         {warningCount > 0 && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200">
-                                <AlertTriangle size={10} /> {warningCount} Warning
-                            </span>
+                            <div className="relative group">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200 cursor-help">
+                                    <AlertTriangle size={10} /> {warningCount} Warning
+                                </span>
+                                <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-amber-100 p-3 hidden group-hover:block z-50">
+                                    <p className="text-xs font-bold text-slate-800 mb-2">Warning Anomalies</p>
+                                    <div className="space-y-2">
+                                        {anomalyList.filter(a => a.severity === 'warning').slice(0, 3).map((a, i) => (
+                                            <div key={i} className="text-xs">
+                                                <span className="font-semibold text-amber-600">{a.department_name}:</span> <span className="text-slate-600">{a.message}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         )}
                         <span className="flex items-center gap-1.5 text-xs text-slate-400">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -546,7 +570,7 @@ export default function AdminDashboard({ onLogout }) {
                 <main className="flex-1 px-6 py-6">
 
                     {/* Health score */}
-                    <DashboardSection sectionId="health" title="Hospital Health Score" subtitle="Real-time weighted performance index">
+                    <DashboardSection sectionId="health" title="Hospital Performance Metrics" subtitle="Real-time weighted performance index">
                         {healthScore && (
                             <HealthScoreGauge scoreValue={healthScore.score} scoreGrade={healthScore.grade} scoreLabel={healthScore.label} />
                         )}
